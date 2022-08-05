@@ -1,0 +1,306 @@
+call plug#begin('~/.vim/plugged')
+
+" Plugin list
+Plug 'airblade/vim-gitgutter'
+Plug 'flazz/vim-colorschemes'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-surround'
+Plug 'vim-airline/vim-airline'
+"Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
+Plug 'junegunn/fzf.vim'
+Plug 'majutsushi/tagbar'
+
+"LSP
+Plug 'neovim/nvim-lspconfig'
+" Completion
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'hrsh7th/cmp-cmdline'
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-vsnip'
+Plug 'hrsh7th/vim-vsnip'
+
+Plug 'kyazdani42/nvim-web-devicons'
+Plug 'folke/trouble.nvim'
+
+"Treesitter
+Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSInstall cpp, python' }
+
+call plug#end()
+
+syntax on
+set background=dark
+
+if (has("termguicolors"))
+    set termguicolors
+endif
+
+colorscheme gruvbox
+
+set t_Co=256
+
+"filetype plugin indent on
+
+set tabstop=4
+set expandtab
+set shiftwidth=4
+set ruler
+set number
+set backspace=indent,eol,start
+set visualbell
+"set t_vb=
+set formatoptions=ql
+
+set mouse=a
+
+set wildmenu
+set wildmode=longest,list,full
+
+"Search as you type
+set incsearch
+"Replace as you type
+set inccommand=nosplit
+"Highlight found terms
+set hlsearch
+"Case insensitive search
+set ic
+"SmartCase search- if contains mixed upperlower use that
+set smartcase
+
+"vs split to right
+set splitright
+set splitbelow
+
+
+"Use expected backspace behaviour
+set backspace=2
+
+"Avoid indenting below namespace
+set cino=N-s
+"Indent public/private labels by 2 spaces
+set cino+=g2
+
+let mapleader = " "
+
+"Remap Esc to jj in insert mode
+imap jj 
+
+au FileType cpp setl sw=4 sts=4 et
+
+"Swap between cpp/h file
+nnoremap   :exec ":e ".(expand("%") =~ ".h$"
+            \       ? glob(substitute(expand("%"), ".h$", ".cpp", ""))
+            \          : substitute(expand("%"), "\\.cpp$", ".h", ""))
+"            \          : substitute(expand("%"), "\\.cp*$", ".h", ""))
+"Swap between c/h file
+nnoremap   :exec ":e ".(expand("%") =~ ".h$"
+            \       ? glob(substitute(expand("%"), ".h$", ".c", ""))
+            \          : substitute(expand("%"), "\\.c$", ".h", ""))
+
+"Airline customisation
+let g:airline#extensions#tabline#enabled = 1
+
+"Dont continue comments
+set formatoptions-=cro
+
+""Formatting
+map  :%!clang-format-12
+imap  :%!clang-format-12
+
+" move among buffers with CTRL
+nmap  :bnext
+nmap  :bprev
+
+" close tabs
+nmap q :bpspbnbd
+nmap Q :%bd
+
+
+"No swap file
+set noswapfile
+
+"No save warn
+set hidden
+
+"Stop search highlighting
+nnoremap  :noh
+
+"Fast scrolling
+set ttyfast
+
+"indent in visual mode
+vmap  >gv
+vmap  w :Cprev
+nnoremap e :Cnext
+nnoremap co :copen
+nnoremap cc :ccl
+
+"Make quickfix list loop to top if at end
+command! Cnext try | cnext | catch | cfirst | catch | endtry
+command! Cprev try | cprev | catch | clast | catch | endtry
+
+" Some servers have issues with backup files, see #649
+set nobackup
+set nowritebackup
+
+" Better display for messages
+set cmdheight=2
+
+" don't give |ins-completion-menu| messages.
+set shortmess+=c
+
+" always show signcolumns
+set signcolumn=yes
+
+" FZF
+nmap p :GFiles
+nmap f :call fzf#run({'source': 'git ls-files', 'sink': 'e'})
+nnoremap F :Ag  
+nnoremap f :Ag  
+
+let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8, 'highlight': 'Comment' } }
+let g:fzf_history_dir = '~/.local/share/fzf-history'
+
+
+" disable ex mode
+:map Q 
+
+" Some servers have issues with backup files, see #649.
+set nobackup
+set nowritebackup
+
+" Give more space for displaying messages.
+set cmdheight=2
+
+" Having longer updatetime (default is 4000 ms = 4 s) leads to noticeable
+" delays and poor user experience.
+set updatetime=300
+
+" Don't pass messages to |ins-completion-menu|.
+set shortmess+=c
+
+" Always show the signcolumn, otherwise it would shift the text each time
+" diagnostics appear/become resolved.
+set signcolumn=yes
+
+" Syntax highlighting for Jenkinsfile
+au BufNewFile,BufRead Jenkinsfile setf groovy
+
+"lsp remap
+"nnoremap   lua vim.lsp.buf.definition()
+nnoremap ]   lua vim.lsp.buf.definition()
+nnoremap gD  lua vim.lsp.buf.implementation()
+nnoremap r   lua vim.lsp.buf.rename()
+nnoremap gr  lua vim.lsp.buf.references()
+nnoremap h   lua vim.lsp.buf.hover()
+nnoremap ]d          lua vim.diagnostic.goto_next()
+nnoremap [d  lua vim.diagnostic.goto_prev()
+nnoremap ca  lua vim.lsp.buf.code_action()
+
+"diagnostic
+let g:diagnostic_enable_virtual_text=1 
+let g:diagnostic_insert_delay = 1
+" show popup on hover
+"autocmd CursorHold * lua vim.lsp.diagnostic.show_line_diagnostics()
+
+" -- Tree sitter
+:lua<< END
+require 'nvim-treesitter.configs'.setup
+{
+    highlight = { enable = true },
+    textobjects = {
+        select = {
+        enable = true,
+        keymaps = {
+            ["af"] = "@function.outer",
+            ["if"] = "@function.inner",
+            }
+        },
+    swap = {
+    enable = true,
+    swap_previous = {
+        ["A"] = "@parameter.inner",
+        },
+    swap_next = {
+        ["s"] = "@parameter.inner",
+        },
+    }
+}
+
+}
+END
+
+:lua << END
+    local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+    local lspconfig = require'lspconfig'
+    lspconfig.clangd.setup{
+        cmd = { "clangd", "--suggest-missing-includes", "--completion-style=detailed", "--background-index", '--resource-dir=/opt/bb/lib/llvm-12.0/lib64/clang/12.0.1' };
+        on_attach = custom_on_attach;
+        capabilities = capabilities;
+    }
+    lspconfig.pylsp.setup{
+        capabilities = capabilities
+    }
+END
+
+" CMP
+:lua << END
+local cmp = require'cmp'
+
+cmp.setup({
+snippet = {
+    -- REQUIRED - you must specify a snippet engine
+    expand = function(args)
+    vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+    -- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+    -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+    -- require'snippy'.expand_snippet(args.body) -- For `snippy` users.
+end,
+},
+    mapping = {
+        [''] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
+        [''] = cmp.config.disable, -- Specify `cmp.config.disable` if you want to remove the default `` mapping.
+        [''] = cmp.mapping({
+        i = cmp.mapping.abort(),
+        c = cmp.mapping.close(),
+        }),
+    [''] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
+    [''] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
+    [''] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
+    [''] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
+    [''] = cmp.mapping.scroll_docs(-4),
+    [''] = cmp.mapping.scroll_docs(4),
+    [''] = cmp.mapping.complete(),
+    [''] = cmp.mapping.close(),
+    [''] = cmp.mapping.confirm({
+    behavior = cmp.ConfirmBehavior.Replace,
+    select = true,
+    })
+},
+    sources = {
+        { name = 'path' },
+        { name = 'nvim_lsp' },
+        }
+    })
+
+END
+
+autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o " suppress automatic comment insertion
+
+lua << EOF
+  require("trouble").setup {
+    -- your configuration comes here
+    -- or leave it empty to use the default settings
+    -- refer to the configuration section below
+ }
+EOF
+nnoremap xx TroubleToggle
+nnoremap xw TroubleToggle document_diagnostics
+
+
+
+"set foldmethod=expr
+"set foldexpr=nvim_treesitter#foldexpr()
